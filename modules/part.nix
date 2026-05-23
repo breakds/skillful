@@ -1,7 +1,7 @@
 { inputs, ... }:
 
 {
-  flake.nixosModules.skillful = { config, lib, pkgs, ... }: let
+  flake.nixosModules.default = { config, lib, pkgs, ... }: let
     cfg = config.programs.skillful;
     
     skillRoot = {
