@@ -1,0 +1,16 @@
+# Build artifacts
+build/
+managed_components/
+
+# SDK config
+sdkconfig
+sdkconfig.old
+
+# direnv
+.direnv/
+
+# Local environment
+.envrc.local
+
+# Cache
+.cache/
