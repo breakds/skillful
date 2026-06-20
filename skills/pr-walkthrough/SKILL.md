@@ -105,6 +105,26 @@ For each step, in order:
 **Ask for my go-ahead between steps. One step per turn — never dump the whole
 tour at once.** The pacing is the product.
 
+## What marks the walkthrough done
+
+You declare it — not the agent. The skill never auto-flips `Status` to `done`.
+When the mechanical checklist below is green, *present it to me* and ask for my
+confidence call; I decide whether we're at threshold.
+
+The checklist to surface before asking:
+
+1. **Every tour step is ✅ approved** — no step sits at ☐ or ▶.
+2. **Open questions are resolved or explicitly waived by me** — never silently
+   dropped. List any I waived.
+3. **Delegated tasks are finished and their diffs were walked as their own
+   steps** — nothing folded in unreviewed.
+
+Then ask plainly: *"Mechanics are green (or: these N questions are still open) —
+are you confident enough to merge?"* Only on my explicit yes do you set
+`Status: done`. If I'm not there yet, the job isn't done: re-explain, add
+context, or go deeper on whatever is blocking my confidence — the checklist can
+be all-green and the answer can still be "not yet," and that's fine.
+
 </workflow>
 
 <handling-problems>
