@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<!--
+  PR Walkthrough visual book.
+  Copy this file to .pr-walkthrough/<branch-slug>.html, fill the placeholders,
+  and grow it one section at a time. Insertion markers below tell you where new
+  content goes. Refresh the browser tab after each edit.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Walkthrough: BRANCH_NAME</title>
+
+<!-- Diagrams + code highlighting. CDN: needs internet to render. -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github-dark.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --ink: #e6e6e6; --muted: #9aa4b2;
+    --line: #2a2f3a; --accent: #6ea8fe; --max: 860px;
+    --faq: #6ea8fe; --why: #5fd39a; --assume: #d6a25f; --complexity: #e06c75; --concern: #d18bff; --example: #57b6c2;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.65 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .wrap { display: grid; grid-template-columns: 260px minmax(0, var(--max)); gap: 40px;
+    max-width: 1180px; margin: 0 auto; padding: 32px 24px 120px; }
+  nav { position: sticky; top: 24px; align-self: start; font-size: 14px; max-height: 90vh; overflow: auto; }
+  nav h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  nav ol { list-style: none; padding: 0; margin: 0; }
+  nav li { margin: 2px 0; }
+  nav a { color: var(--muted); text-decoration: none; }
+  nav a:hover { color: var(--ink); }
+  main { min-width: 0; }
+  header.book { border-bottom: 1px solid var(--line); padding-bottom: 16px; margin-bottom: 8px; }
+  header.book h1 { margin: 0 0 4px; font-size: 24px; }
+  header.book .meta { color: var(--muted); font-size: 13px; }
+  header.book .meta code { color: var(--ink); }
+  section.chapter { padding: 28px 0; border-bottom: 1px solid var(--line); }
+  section.chapter > h2 { font-size: 21px; margin: 0 0 12px; scroll-margin-top: 24px; }
+  section.chapter > h3 { font-size: 17px; color: var(--accent); margin: 22px 0 8px; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  code { background: #20242d; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  pre { background: #11141a; border: 1px solid var(--line); border-radius: 8px; padding: 0; overflow: auto; }
+  pre code { background: none; padding: 14px 16px; display: block; font-size: 13px; line-height: 1.5; }
+  .codecap { color: var(--muted); font-size: 12px; margin: 16px 0 -2px; }
+  .mermaid { background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 18px; margin: 16px 0; text-align: center; }
+
+  /* Callouts: the recurring lenses. Type sets the accent + label. */
+  .callout { border-left: 3px solid var(--line); background: var(--panel);
+    border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 16px 0; }
+  .callout .label { font-size: 11px; text-transform: uppercase; letter-spacing: .07em;
+    font-weight: 700; margin-bottom: 6px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout.faq        { border-color: var(--faq); }        .callout.faq .label { color: var(--faq); }
+  .callout.why        { border-color: var(--why); }        .callout.why .label { color: var(--why); }
+  .callout.assume     { border-color: var(--assume); }     .callout.assume .label { color: var(--assume); }
+  .callout.complexity { border-color: var(--complexity); } .callout.complexity .label { color: var(--complexity); }
+  .callout.concern    { border-color: var(--concern); }    .callout.concern .label { color: var(--concern); }
+  .callout.example    { border-color: var(--example); }    .callout.example .label { color: var(--example); }
+  .faq dt { font-weight: 600; margin-top: 8px; }
+  .faq dd { margin: 2px 0 0; color: var(--muted); }
+
+  /* Roadmap = state. Status badges read at a glance. */
+  .roadmap ol { list-style: none; padding: 0; }
+  .roadmap li { padding: 4px 0; }
+  .badge { display: inline-block; width: 1.4em; }
+  .done .badge { color: var(--why); } .now .badge { color: var(--accent); } .todo .badge { color: var(--muted); }
+  .todo a, .roadmap .meta { color: var(--muted); }
+  .roadmap .meta { font-size: 13px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <h2>Chapters</h2>
+    <!-- NAV: keep in sync with roadmap; one <li> per section, anchored. -->
+    <ol id="nav">
+      <li><a href="#roadmap">0 · Roadmap</a></li>
+      <li><a href="#ch1">1 · The problem</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="book">
+      <h1>Walkthrough: BRANCH_NAME</h1>
+      <div class="meta">
+        PR <code>OWNER/REPO #N</code> · base <code>BASE@SHA</code> · tip <code>HEAD_SHA</code> · updated YYYY-MM-DD
+      </div>
+    </header>
+
+    <!-- ===== Chapter 0: Roadmap (this is the resumable state) ===== -->
+    <section class="chapter roadmap" id="roadmap">
+      <h2>Roadmap</h2>
+      <ol>
+        <li class="now"><span class="badge">▶</span> <a href="#ch1">The problem, as a story</a></li>
+        <li class="todo"><span class="badge">☐</span> <span>…plan the descent here…</span></li>
+      </ol>
+      <div class="meta">Open questions: 0 · Fixes made: 0 · Delegated: none</div>
+      <!-- Status: ✅ done · ▶ in-progress · ☐ pending. The first non-✅ is where we resume. -->
+    </section>
+
+    <!-- ===== Chapter 1: The problem & how the PR solves it ===== -->
+    <section class="chapter" id="ch1">
+      <h2>1 · The problem, as a story</h2>
+      <p>Tell the specific problem first, with a concrete example. Then show how the
+        PR's high-level pieces fit together to solve it. Lead with a diagram.</p>
+
+      <div class="mermaid">
+flowchart LR
+  A[Concrete input] --> B[New piece]
+  B --> C[Outcome]
+      </div>
+
+      <div class="callout example">
+        <div class="label">Example</div>
+        <p>Walk one real input through the new flow end to end.</p>
+      </div>
+
+      <div class="callout assume">
+        <div class="label">Load-bearing assumptions</div>
+        <p>What must hold for this design to be correct?</p>
+      </div>
+
+      <div class="callout complexity">
+        <div class="label">Complexity watch</div>
+        <p>Too many new concepts? Does each earn its place?</p>
+      </div>
+    </section>
+
+    <!-- SECTIONS-END: insert new <section class="chapter"> blocks above this line -->
+  </main>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: "dark", securityLevel: "loose",
+    flowchart: { curve: "basis" } });
+  hljs.highlightAll();
+</script>
+</body>
+</html>
