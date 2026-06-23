@@ -1,0 +1,4 @@
+interface:
+  display_name: "CDP Test Companion"
+  short_description: "Collaborative CDP product testing"
+  default_prompt: "Use $cdp-test-companion to help me test and debug the app through a CDP-enabled browser."
