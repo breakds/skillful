@@ -1,0 +1,298 @@
+<!doctype html>
+<!--
+  pr-anatomy template. Copy to $HOME/.cache/pr-anatomy/<repo>-pr-<n>.html and fill in.
+  Rules for filling it in:
+    - Replace every {{...}} placeholder and delete the <!-- HOWTO --> comments you consumed.
+    - Embed real code, copied from the files, in a .src block. Never send me to a file:line.
+    - Delete the banner unless Level 1 or 2 failed the gate.
+    - Findings keep stable ids (A, B, C; grouped as A1, A2). Never renumber.
+    - Fold follow-up answers and my decisions back into this file, then tell me to refresh.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{REPO}} PR {{NUMBER}} - anatomy</title>
+<style>
+  :root {
+    --bg: #fbfaf8; --panel: #fff; --ink: #1f2328; --muted: #5c6570; --line: #e2e0dc;
+    --accent: #2f6f4f; --warn: #8a5a1a; --warn-bg: #fdf5e6; --stop: #a32d2d; --stop-bg: #fdf0ef;
+    --code-bg: #f4f2ee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181c; --panel: #1d2025; --ink: #e6e6e3; --muted: #9aa3ad; --line: #2e333a;
+      --accent: #6fbf90; --warn: #d9a54a; --warn-bg: #2a2318; --stop: #e2726d; --stop-bg: #2b1c1c;
+      --code-bg: #14161a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.65 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; }
+  header { border-bottom: 1px solid var(--line); padding-bottom: 1.25rem; margin-bottom: 1.5rem; }
+  h1 { font-size: 1.6rem; margin: 0 0 .35rem; }
+  h2 { font-size: 1.3rem; margin: 3rem 0 .25rem; scroll-margin-top: 1rem; }
+  h3 { font-size: 1.05rem; margin: 1.75rem 0 .4rem; }
+  .sub, .cap { color: var(--muted); font-size: .875rem; }
+  .lede { color: var(--muted); margin: .1rem 0 1.25rem; font-size: .95rem; }
+  nav { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 0; }
+  nav a {
+    font-size: .85rem; text-decoration: none; color: var(--ink); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 999px; padding: .25rem .75rem;
+  }
+  a { color: var(--accent); }
+  section { border-top: 1px solid var(--line); padding-top: .5rem; }
+  .banner {
+    background: var(--stop-bg); border-left: 4px solid var(--stop); border-radius: 4px;
+    padding: .9rem 1.1rem; margin: 1.5rem 0;
+  }
+  .note {
+    background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+    border-radius: 4px; padding: .9rem 1.1rem; margin: 1.25rem 0;
+  }
+  .note.caution { border-left-color: var(--warn); background: var(--warn-bg); }
+  .note .t { font-weight: 600; display: block; margin-bottom: .3rem; }
+  table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: .93rem; }
+  th, td { border: 1px solid var(--line); padding: .5rem .7rem; text-align: left; vertical-align: top; }
+  th { background: var(--panel); font-weight: 600; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 6px;
+    padding: .85rem 1rem; overflow-x: auto; font-size: .85rem; line-height: 1.5; margin: .4rem 0;
+  }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; }
+  p > code, li > code, td > code { background: var(--code-bg); padding: .1rem .35rem; border-radius: 3px; }
+  /* Source excerpt: the location is a caption on the code, never a substitute for it. */
+  .src { margin: 1.25rem 0; }
+  .src > .loc {
+    font-family: ui-monospace, Menlo, monospace; font-size: .78rem; color: var(--muted);
+    background: var(--panel); border: 1px solid var(--line); border-bottom: none;
+    border-radius: 6px 6px 0 0; padding: .35rem .75rem;
+  }
+  .src > pre { margin: 0; border-radius: 0 0 6px 6px; }
+  .src > .loc + pre { border-top-left-radius: 0; border-top-right-radius: 0; }
+  .src .del, .src .ins { display: block; margin: 0 -1rem; padding: 0 1rem; }
+  .src .del { background: var(--stop-bg); }
+  .src .ins { background: var(--warn-bg); }
+  .src .cut { color: var(--muted); font-style: italic; }
+  .beside { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.25rem 0; }
+  .beside .src { margin: 0; }
+  @media (max-width: 700px) { .beside { grid-template-columns: 1fr; } }
+  figure { margin: 1.5rem 0; }
+  figure .mermaid { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 1rem; text-align: center; }
+  figcaption { margin-top: .4rem; }
+  .finding {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+    padding: 1rem 1.15rem; margin: 1.25rem 0; scroll-margin-top: 1rem;
+  }
+  .finding > .id { font-weight: 700; font-family: ui-monospace, Menlo, monospace; margin-right: .5rem; }
+  .finding > .claim { font-weight: 600; }
+  .finding dl { margin: .75rem 0 0; display: grid; grid-template-columns: max-content 1fr; gap: .35rem .9rem; }
+  .finding dt { color: var(--muted); font-size: .85rem; text-transform: uppercase; letter-spacing: .03em; }
+  .finding dd { margin: 0; }
+  .finding dd > .src:first-child { margin-top: 0; }
+  .finding dd > .src:last-child { margin-bottom: 0; }
+  .decided { border-left: 4px solid var(--accent); }
+  .group-title { margin-top: 2rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>{{PR TITLE}}</h1>
+  <div class="sub">
+    {{REPO}} &middot; <a href="{{PR URL}}">PR #{{NUMBER}}</a> &middot;
+    <code>{{BASE}}...{{HEAD}}</code> &middot; {{N}} files, +{{ADD}} &minus;{{DEL}}
+  </div>
+  <nav>
+    <a href="#goal">1. Goal</a>
+    <a href="#design">2. Design</a>
+    <a href="#impl">3. Implementation</a>
+    <a href="#findings">4. Findings</a>
+  </nav>
+</header>
+
+<!-- HOWTO: keep this banner ONLY when Level 1 or 2 fails the gate; say why 3 and 4 are thin. -->
+<div class="banner">
+  <strong>Read this first.</strong> {{Why the goal or the design does not hold, and what that
+  means for the rest of the page.}}
+</div>
+
+<section id="goal">
+  <h2>1. The goal</h2>
+  <p class="lede">What problem this solves, and whether that problem is worth solving.</p>
+
+  <p><strong>In one sentence:</strong> {{the goal}}</p>
+
+  <h3>What goes wrong today</h3>
+  <!-- HOWTO: one concrete example with obviously fake values. No real patient data, ever. -->
+  <p>{{concrete example}}</p>
+
+  <figure>
+    <pre class="mermaid">{{before/after diagram - delete the figure if prose is clearer}}</pre>
+    <figcaption class="cap">{{what to notice in it}}</figcaption>
+  </figure>
+
+  <div class="note">
+    <span class="t">Is the goal valid?</span>
+    {{Your judgement, in plain English.}}
+  </div>
+</section>
+
+<section id="design">
+  <h2>2. The design</h2>
+  <p class="lede">How the change achieves the goal, and what it costs to hold in my head.</p>
+
+  <!-- HOWTO: introduce each piece as the thing that solves this part of the problem. -->
+  <table>
+    <tr><th>New piece</th><th>What it is</th><th>Which part of the problem it solves</th></tr>
+    <tr><td><code>{{Name}}</code></td><td>{{one line}}</td><td>{{one line}}</td></tr>
+  </table>
+
+  <figure>
+    <pre class="mermaid">{{how the pieces fit together}}</pre>
+    <figcaption class="cap">{{what to notice in it}}</figcaption>
+  </figure>
+
+  <!-- HOWTO: when a type, signature, or schema states the shape better than prose, show it. -->
+  <div class="src">
+    <div class="loc">{{path/to/models.py:20-31}}</div>
+<pre><code>{{the type or signature that defines the new shape}}</code></pre>
+  </div>
+
+  <div class="note">
+    <span class="t">Does it achieve the goal?</span>
+    {{Plainly: yes / partly / no, and why.}}
+  </div>
+
+  <div class="note caution">
+    <span class="t">What it costs to understand</span>
+    {{New concepts introduced and whether each earns its place. Anything you found hard to
+    explain simply belongs here, named as a design problem.}}
+  </div>
+</section>
+
+<section id="impl">
+  <h2>3. The implementation</h2>
+  <p class="lede">The strategy, in teaching order - not a tour of the diff.</p>
+
+  <h3>{{Step 1: where the change enters the system}}</h3>
+  <p>{{explanation}}</p>
+
+  <!-- HOWTO: paste the REAL lines, copied from the file. Trim with a "# ..." cut line, but
+       keep enough around them to read without opening anything. -->
+  <div class="src">
+    <div class="loc">{{path/to/file.py:112-128}}</div>
+<pre><code>{{def enclosing_signature(...) -> Thing:}}
+{{    real code, copied verbatim}}
+<span class="cut">    # ...</span>
+{{    the lines that carry the weight}}</code></pre>
+  </div>
+
+  <h3>{{Step 2: what it changed}}</h3>
+  <p>{{explanation}}</p>
+
+  <!-- HOWTO: for an edit, show both sides. Use .beside for two short blocks, or a single
+       block with <span class="del"> / <span class="ins"> lines when the change is interleaved. -->
+  <div class="beside">
+    <div class="src">
+      <div class="loc">before &middot; {{path/to/file.py:40}}</div>
+<pre><code>{{old code}}</code></pre>
+    </div>
+    <div class="src">
+      <div class="loc">after &middot; {{path/to/file.py:40}}</div>
+<pre><code>{{new code}}</code></pre>
+    </div>
+  </div>
+
+  <div class="src">
+    <div class="loc">{{path/to/other.py:88}}</div>
+<pre><code>{{unchanged context line}}
+<span class="del">{{- removed line}}</span>
+<span class="ins">{{+ added line}}</span>
+{{unchanged context line}}</code></pre>
+  </div>
+
+  <div class="note caution">
+    <span class="t">Complexity worth naming</span>
+    {{Complexity that is not obviously necessary, or that leaks out of the one spot it belongs in.}}
+  </div>
+</section>
+
+<section id="findings">
+  <h2>4. Findings</h2>
+  <p class="lede">
+    Ordered by how much each would change my decision. Ids are stable - use them in follow-up.
+  </p>
+
+  <!-- HOWTO: ungrouped finding. Duplicate per finding; ids A, B, C. Add class "decided" and a
+       Decision row once Break has decided. -->
+  <div class="finding" id="A">
+    <span class="id">A</span><span class="claim">{{the claim in one plain sentence}}</span>
+    <dl>
+      <dt>The code</dt>
+      <dd>
+        <!-- HOWTO: the offending lines themselves, copied. I should see the problem here. -->
+        <div class="src">
+          <div class="loc">{{path/to/file.py:120-126}}</div>
+<pre><code>{{the lines where it goes wrong, with just enough context}}</code></pre>
+        </div>
+      </dd>
+      <dt>What goes wrong</dt><dd>{{this input, this state, this wrong result}}</dd>
+      <dt>How sure</dt><dd>{{confident / worth checking - and what would settle it}}</dd>
+      <dt>Your call</dt><dd>{{fix now / accept / follow up - and what each costs}}</dd>
+    </dl>
+  </div>
+
+  <!-- HOWTO: grouped findings share a letter. Delete the group block if nothing groups. -->
+  <h3 class="group-title">B. {{group name}}</h3>
+  <div class="finding" id="B1">
+    <span class="id">B1</span><span class="claim">{{claim}}</span>
+    <dl>
+      <dt>The code</dt>
+      <dd>
+        <div class="src">
+          <div class="loc">{{path/to/file.py:45}}</div>
+<pre><code>{{the lines}}</code></pre>
+        </div>
+      </dd>
+      <dt>What goes wrong</dt><dd>{{scenario}}</dd>
+      <dt>How sure</dt><dd>{{...}}</dd>
+      <dt>Your call</dt><dd>{{...}}</dd>
+    </dl>
+  </div>
+
+  <!-- HOWTO: once I have decided, the finding looks like this. -->
+  <div class="finding decided" id="B2">
+    <span class="id">B2</span><span class="claim">{{claim}}</span>
+    <dl>
+      <dt>The code</dt>
+      <dd>
+        <div class="src">
+          <div class="loc">{{path/to/file.py:67}}</div>
+<pre><code>{{the lines}}</code></pre>
+        </div>
+      </dd>
+      <dt>What goes wrong</dt><dd>{{scenario}}</dd>
+      <dt>How sure</dt><dd>{{...}}</dd>
+      <dt>Decision</dt><dd>{{my decision, in my words, with my reason.}}</dd>
+    </dl>
+  </div>
+</section>
+
+<!-- HOWTO: add a "Follow-ups" section here when discussion produces material that does not
+     belong inside a level or a finding. -->
+
+</div>
+
+<script type="module">
+  // Mermaid from CDN; the page still reads fine without a network connection.
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  mermaid.initialize({ startOnLoad: true, theme: dark ? 'dark' : 'default' });
+</script>
+</body>
+</html>
